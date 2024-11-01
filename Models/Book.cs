@@ -10,15 +10,17 @@ public class Book
 
     public required int Stock { get; set; }
 
-    public decimal Precio { get; set; }
+    public decimal Price { get; set; }
 
     public required string Synopsis { get; set; }
 
     public required string Isbn { get; set; }
 
-    public virtual Order Order { get; set; }
+    public required int? AuthorId { get; set; }
 
-    public virtual Author Author { get; set; }
+    public required int? GenreId { get; set; }
+
+    public virtual Author? Author { get; set; }
 
     public virtual Genre? Genre { get; set; }
 }

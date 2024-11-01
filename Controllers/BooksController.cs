@@ -9,8 +9,7 @@ namespace BookStore.API.Controllers;
 public class BooksController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
-    private readonly Book[] _books = new Book[3];
-    
+
     // Inyectar el DbContext a través del constructor
     public BooksController(ApplicationDbContext context)
     {
@@ -18,9 +17,9 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet()]
-    public IEnumerable<Book> GetBooks()
+    public ActionResult<IEnumerable<Book>> GetBooks()
     {
-        return _context.Books.ToList();
+        return Ok(_context.Books.ToList()); // HTTP 200 OK
     }
 
     [HttpGet("{id}")]
@@ -44,19 +43,46 @@ public class BooksController : ControllerBase
     {
         try
         {
+            Author? author = null;
+            Genre? genre = null;
+
+            if(book.AuthorId.HasValue)
+            {
+                author = _context.Authors.Find(book.AuthorId);
+                if(author == null)
+                {
+                    return BadRequest();
+                }
+            }
+
+            if(book.GenreId.HasValue)
+            {
+
+                genre = _context.Genres.Find(book.GenreId);
+                if(genre == null)
+                {
+                    return BadRequest();
+                }
+            }
+
             Book createdBook = new Book
             {
-                Autor = book.Autor,
-                Editorial = book.Editorial,
-                Titulo = book.Titulo,
-                Precio = book.Precio,
-                Sinopsis = book.Sinopsis,
-                Isbn = book.Isbn
+                Author = author,
+                Title = book.Title,
+                Price = book.Price,
+                Synopsis = book.Synopsis,
+                Isbn = book.Isbn,
+                PublishedDate = book.PublishedDate,
+                GenreId = genre?.Id,
+                Stock = book.Stock,
+                AuthorId = author?.Id
             };
+
             _context.Books.Add(createdBook);
             _context.SaveChanges();
 
             return CreatedAtAction(nameof(CreateBook), new {id = createdBook.Id}, createdBook);
+
         } 
         catch
         {
@@ -65,10 +91,16 @@ public class BooksController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public void DeleteBook(int id){
-        Book deleteBook = _context.Books.Find(id) ?? throw new Exception();
+    public IActionResult DeleteBook(int id){
+        Book? deleteBook = _context.Books.Find(id);
+
+        if(deleteBook == null){
+            return NotFound();
+        }
         _context.Books.Remove(deleteBook);
         _context.SaveChanges();
+        return Ok();
+        
     }
 
 
@@ -81,24 +113,20 @@ public class BooksController : ControllerBase
             return NotFound("Libro no encontrado");
         }
 
-        bookToUpdate.Titulo = book.Titulo;
-        bookToUpdate.Autor = book.Autor;
-        bookToUpdate.Editorial = book.Editorial;
-        bookToUpdate.Precio = book.Precio;
-        bookToUpdate.Sinopsis = book.Sinopsis;
+        bookToUpdate.Author = book.Author;
+        bookToUpdate.Title = book.Title;
+        bookToUpdate.Price = book.Price;
+        bookToUpdate.Synopsis = book.Synopsis;
         bookToUpdate.Isbn = book.Isbn;
+        bookToUpdate.PublishedDate = book.PublishedDate;
+        bookToUpdate.Genre = book.Genre;
+        bookToUpdate.Stock = book.Stock;
+        
 
         _context.Books.Update(bookToUpdate);
         _context.SaveChanges();
 
         return Ok();
-    }
-
-    [HttpGet("loadData")]
-    public void LoadBooks()
-    {
-        _context.Books.AddRange(_books);
-        _context.SaveChanges();
     }
 }
 

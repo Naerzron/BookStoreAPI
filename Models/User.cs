@@ -23,6 +23,4 @@ public class User
     public required string Email { get; set; }
 
     public required string Phone { get; set; }
-
-    public virtual ICollection<Order> Orders { get; set; }
 }

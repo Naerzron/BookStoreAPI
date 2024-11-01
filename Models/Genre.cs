@@ -6,7 +6,5 @@ public class Genre
 
     public required string Name { get; set; }
 
-    public string Description { get; set; }
-
-    public virtual Book Book { get; set; }
+    public required string Description { get; set; }
 }

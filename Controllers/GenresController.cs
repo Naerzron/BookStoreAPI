@@ -9,7 +9,6 @@ namespace BookStore.API.Controllers;
 public class GenresController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
-    private readonly Genre[] _genre;
 
     public GenresController(ApplicationDbContext context)
     {
@@ -17,8 +16,8 @@ public class GenresController : ControllerBase
     }
 
     [HttpGet()]
-    public IEnumerable<Genre> GetGenres(){
-        return _context.Genres.ToList();
+    public ActionResult<IEnumerable<Genre>> GetGenres(){
+        return Ok(_context.Genres.ToList());
     }
     
     [HttpGet("{id}")]
@@ -45,7 +44,7 @@ public class GenresController : ControllerBase
             {
                 Name = genre.Name,
                 Description = genre.Description
-            }
+            };
 
             _context.Genres.Add(createdGenre);
             _context.SaveChanges();

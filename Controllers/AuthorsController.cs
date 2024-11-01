@@ -1,8 +1,12 @@
+using BookStore.API.Data;
+using BookStore.API.Models;
+using Microsoft.AspNetCore.Mvc;
+
 namespace BookStore.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-class AuthorsController : BaseController
+public class AuthorsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
 
@@ -12,9 +16,9 @@ class AuthorsController : BaseController
     }
 
     [HttpGet()]
-    public IEnumerable<Author> GetAuthors()
+    public ActionResult<IEnumerable<Author>> GetAuthors()
     {
-        return _context.Authors.ToList();
+        return Ok(_context.Authors.ToList());
     }
 
     [HttpGet("{id}")]
@@ -25,7 +29,7 @@ class AuthorsController : BaseController
             var author = _context.Authors.Find(id);
             if(author is null) return NotFound("Autor no encontrado"); // NotFound (404)
 
-            return Ok(autor); // Ok (200)
+            return Ok(author); // Ok (200)
         } 
         catch 
         {
@@ -43,7 +47,7 @@ class AuthorsController : BaseController
                 Name = author.Name,
                 BirthDay = author.BirthDay
             };
-            _context.Books.Add(createdBook);
+            _context.Authors.Add(createdAuthor);
             _context.SaveChanges();
 
             return CreatedAtAction(nameof(CreateAuthor), new {id = createdAuthor.Id}, createdAuthor);
@@ -52,5 +56,12 @@ class AuthorsController : BaseController
         {
             return Problem();
         }
+    }
+
+    [HttpDelete("{id}")]
+    public void DeleteAuthor(int id){
+        Author deleteAuthor = _context.Authors.Find(id) ?? throw new Exception();
+        _context.Authors.Remove(deleteAuthor);
+        _context.SaveChanges();
     }
 }
