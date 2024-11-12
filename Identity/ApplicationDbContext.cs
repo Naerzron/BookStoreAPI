@@ -1,10 +1,11 @@
-using BookStore.API.Controllers;
+using BookStore.API.Identity;
 using BookStore.API.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.API.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<MyUser>
 {
     // Constructor de la clase ApplicationDbContext, que hereda de DbContext.
     // Este constructor recibe una instancia de DbContextOptions<ApplicationDbContext>
@@ -14,7 +15,7 @@ public class ApplicationDbContext : DbContext
     // para configurar el contexto de la base de datos correctamente.
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
-
+            
     }
 
     public DbSet<Book> Books { get; set; }
@@ -52,43 +53,44 @@ public class ApplicationDbContext : DbContext
             new Genre { Id = 18, Name = "Isekai", Description = "Relatos donde los protagonistas son transportados a mundos paralelos o fantásticos, enfrentando desafíos y nuevas vidas." }
         );
 
-        modelBuilder.Entity<Author>().HasData(
-            new Author
-            {
-                Id = 1,
-                Name = "Brandon Sanderson",
-                BirthDay = new DateOnly(1975, 12, 19)
-            }
-        );
+        var author = new Author
+        {
+            Id = 1,
+            Name = "Brandon Sanderson",
+            BirthDay = new DateOnly(1975, 12, 19)
+        };
 
-        modelBuilder.Entity<Book>().HasData(
-            new Book
-            {
-                Id = 1,
-                Title = "El camino de los reyes",
-                PublishedDate = new DateOnly(2010, 08, 31),
-                Isbn = "0765326353",
-                Stock = 10,
-                Price = 33.33m,
-                Synopsis = @"El camino de los reyes es el primer volumen de «El Archivo de las Tormentas», el resultado de más de una década de construcción y escritura de universos, convertido en una obra maestra de la fantasía contemporánea en diez volúmenes. Con ella, Brandon Sanderson se postula como el autor del género que más lectores está ganando en todo el mundo.
+        modelBuilder.Entity<Author>().HasData(author);
 
-Anhelo los días previos a la Última Desolación.
+//         modelBuilder.Entity<Book>().HasData(
+//             new Book
+//             {
+//                 Id = 1,
+//                 Title = "El camino de los reyes",
+//                 PublishedDate = new DateOnly(2010, 08, 31),
+//                 Isbn = "0765326353",
+//                 Stock = 10,
+//                 Price = 33.33m,
+//                 Synopsis = @"El camino de los reyes es el primer volumen de «El Archivo de las Tormentas», el resultado de más de una década de construcción y escritura de universos, convertido en una obra maestra de la fantasía contemporánea en diez volúmenes. Con ella, Brandon Sanderson se postula como el autor del género que más lectores está ganando en todo el mundo.
 
-Los días en que los Heraldos nos abandonaron y los Caballeros Radiantes se giraron en nuestra contra. Un tiempo en que aún había magia en el mundo y honor en el corazón de los hombres.
+// Anhelo los días previos a la Última Desolación.
 
-El mundo fue nuestro, pero lo perdimos. Probablemente no hay nada más estimulante para las almas de los hombres que la victoria.
+// Los días en que los Heraldos nos abandonaron y los Caballeros Radiantes se giraron en nuestra contra. Un tiempo en que aún había magia en el mundo y honor en el corazón de los hombres.
 
-¿O tal vez fue la victoria una ilusión durante todo ese tiempo? ¿Comprendieron nuestros enemigos que cuanto más duramente luchaban, más resistíamos nosotros? Quizá vieron que el fuego y el martillo tan solo producían mejores espadas. Pero ignoraron el acero durante el tiempo suficiente para oxidarse.
+// El mundo fue nuestro, pero lo perdimos. Probablemente no hay nada más estimulante para las almas de los hombres que la victoria.
 
-Hay cuatro personas a las que observamos. La primera es el médico, quien dejó de curar para convertirse en soldado durante la guerra más brutal de nuestro tiempo. La segunda es el asesino, un homicida que llora siempre que mata. La tercera es la mentirosa, una joven que viste un manto de erudita sobre un corazón de ladrona. Por último está el alto príncipe, un guerrero que mira al pasado mientras languidece su sed de guerra.
+// ¿O tal vez fue la victoria una ilusión durante todo ese tiempo? ¿Comprendieron nuestros enemigos que cuanto más duramente luchaban, más resistíamos nosotros? Quizá vieron que el fuego y el martillo tan solo producían mejores espadas. Pero ignoraron el acero durante el tiempo suficiente para oxidarse.
 
-El mundo puede cambiar. La potenciación y el uso de las esquirlas pueden aparecer de nuevo, la magia de los días pasados puede volver a ser nuestra. Esas cuatro personas son la clave.
+// Hay cuatro personas a las que observamos. La primera es el médico, quien dejó de curar para convertirse en soldado durante la guerra más brutal de nuestro tiempo. La segunda es el asesino, un homicida que llora siempre que mata. La tercera es la mentirosa, una joven que viste un manto de erudita sobre un corazón de ladrona. Por último está el alto príncipe, un guerrero que mira al pasado mientras languidece su sed de guerra.
 
-Una de ellas nos redimirá. Y una de ellas nos destruirá.",
-                AuthorId = 1,
-                GenreId = 2
-            }
-        );
+// El mundo puede cambiar. La potenciación y el uso de las esquirlas pueden aparecer de nuevo, la magia de los días pasados puede volver a ser nuestra. Esas cuatro personas son la clave.
+
+// Una de ellas nos redimirá. Y una de ellas nos destruirá.",
+//                 Image = "",
+//                 Author = author,
+//                 Genre = genres.First(),
+            // }
+        // );
     }
 
 }

@@ -1,9 +1,5 @@
-namespace BookStore.API.Models;
-
-public class Book
+public class CreateBookRequest
 {
-    public int Id { get; set; }
-
     public required string Title { get; set; }
 
     public required DateOnly PublishedDate { get; set; }
@@ -16,9 +12,9 @@ public class Book
 
     public required string Isbn { get; set; }
 
-    public virtual required Author Author { get; set; }
+    public required int? AuthorId { get; set; }
 
-    public virtual required Genre Genre { get; set; }
+    public required int? GenreId { get; set; }
 
     public required string Image { get; set; }
 }

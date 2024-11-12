@@ -1,6 +1,8 @@
 using BookStore.API.Data;
 using BookStore.API.Models;
+using BookStore.API.Responses;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.API.Controllers;
 
@@ -17,20 +19,53 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet()]
-    public ActionResult<IEnumerable<Book>> GetBooks()
+    public ActionResult<IEnumerable<GetBookResponse>> GetBooks()
     {
-        return Ok(_context.Books.ToList()); // HTTP 200 OK
+        var booksResponse = _context.Books.Select(b =>
+             new GetBookResponse
+            {
+                Id = b.Id,
+                Title = b.Title,
+                Synopsis = b.Synopsis,
+                GenreName = b.Genre.Name,
+                Image = b.Image,
+                Isbn = b.Isbn,
+                PublishedDate = b.PublishedDate,
+                Stock = b.Stock,
+                AuthorName = b.Author.Name,
+                Price = b.Price
+            }
+        );
+
+        return Ok(booksResponse); // HTTP 200 OK
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Book> GetBook(int id)
+    public ActionResult<GetBookResponse> GetBook(int id)
     {
         try
         {
-            var book = _context.Books.Find(id);
+            var book = _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Genre)
+                .FirstOrDefault(b => b.Id == id);
             if(book is null) return NotFound("Libro no encontrado"); // NotFound (404)
 
-            return Ok(book); // Ok (200)
+            var bookResponse = new GetBookResponse
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Synopsis = book.Synopsis,
+                GenreName = book.Genre.Name,
+                Image = book.Image,
+                Isbn = book.Isbn,
+                PublishedDate = book.PublishedDate,
+                Stock = book.Stock,
+                AuthorName = book.Author.Name,
+                Price = book.Price
+            };
+
+            return Ok(bookResponse); // Ok (200)
         } 
         catch 
         {
@@ -39,26 +74,25 @@ public class BooksController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult CreateBook(Book book)
+    public IActionResult CreateBook(CreateBookRequest createBookRequest)
     {
         try
         {
             Author? author = null;
-            Genre? genre = null;
+            Genre? genre = null; 
 
-            if(book.AuthorId.HasValue)
+            if(createBookRequest.AuthorId.HasValue)
             {
-                author = _context.Authors.Find(book.AuthorId);
+                author = _context.Authors.Find(createBookRequest.AuthorId);
                 if(author == null)
                 {
                     return BadRequest();
                 }
             }
 
-            if(book.GenreId.HasValue)
+            if(createBookRequest.GenreId.HasValue)
             {
-
-                genre = _context.Genres.Find(book.GenreId);
+                genre = _context.Genres.Find(createBookRequest.GenreId);
                 if(genre == null)
                 {
                     return BadRequest();
@@ -67,15 +101,15 @@ public class BooksController : ControllerBase
 
             Book createdBook = new Book
             {
+                Title = createBookRequest.Title,
+                Price = createBookRequest.Price,
+                Synopsis = createBookRequest.Synopsis,
+                Isbn = createBookRequest.Isbn,
+                PublishedDate = createBookRequest.PublishedDate,
+                Stock = createBookRequest.Stock,
                 Author = author,
-                Title = book.Title,
-                Price = book.Price,
-                Synopsis = book.Synopsis,
-                Isbn = book.Isbn,
-                PublishedDate = book.PublishedDate,
-                GenreId = genre?.Id,
-                Stock = book.Stock,
-                AuthorId = author?.Id
+                Genre = genre,
+                Image = createBookRequest.Image
             };
 
             _context.Books.Add(createdBook);

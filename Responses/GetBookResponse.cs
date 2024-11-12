@@ -1,6 +1,6 @@
-namespace BookStore.API.Models;
+namespace BookStore.API.Responses;
 
-public class Book
+public class GetBookResponse
 {
     public int Id { get; set; }
 
@@ -16,9 +16,9 @@ public class Book
 
     public required string Isbn { get; set; }
 
-    public virtual required Author Author { get; set; }
+    public required string AuthorName { get; set; }
 
-    public virtual required Genre Genre { get; set; }
+    public required string GenreName { get; set; }
 
     public required string Image { get; set; }
 }
