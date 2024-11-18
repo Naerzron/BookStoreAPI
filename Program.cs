@@ -1,7 +1,10 @@
+using System.Text;
 using BookStore.API.Data;
 using BookStore.API.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,13 +12,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<ApplicationDbContext>(options => 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configura Identity
 builder.Services
     .AddIdentity<MyUser, IdentityRole>(options =>
-    {   
+    {
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
         options.Password.RequireNonAlphanumeric = false;
@@ -34,8 +37,40 @@ builder.Services.AddCors(options =>
         {
             policyBuilder.WithOrigins("http://localhost:3000")
                          .AllowAnyHeader()
-                         .AllowAnyMethod();
+                         .AllowAnyMethod()
+                         .AllowCredentials();
         });
+});
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"] ?? ""))
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.ContainsKey("jwt"))
+            {
+                context.Token = context.Request.Cookies["jwt"];
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 var app = builder.Build();
@@ -50,9 +85,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Agrega autenticación y autorización en el pipeline
+app.UseCors("AutorizeReactApp");
 app.UseAuthentication(); // <--- Asegúrate de que UseAuthentication esté antes de UseAuthorization
 app.UseAuthorization();
-app.UseCors("AutorizeReactApp");
 app.MapControllers();
 
 // Llamada para crear roles al iniciar
@@ -90,12 +125,12 @@ async Task SeedAdminUserAndRoles(IServiceProvider serviceProvider)
             UserName = "AdminUser",
             Email = adminEmail,
             EmailConfirmed = true,
-            Address = "Una dirección falsa del administrador",      
+            Address = "Una dirección falsa del administrador",
             BirthDate = new DateOnly(1996, 3, 7),
-            Country = "ES",      
-            Dni = "12345678A",               
-            LastName = "López Cobo",      
-            Name = "Antonio José",             
+            Country = "ES",
+            Dni = "12345678A",
+            LastName = "López Cobo",
+            Name = "Antonio José",
             PhoneNumber = "123456789"
         };
 

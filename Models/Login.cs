@@ -10,5 +10,4 @@ public class Login
     [DataType(DataType.Password)]
     public required string Password { get; set; }
 
-    public bool RememberMe { get; set; }
 }
