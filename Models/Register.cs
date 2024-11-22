@@ -1,3 +1,4 @@
+namespace BookStore.API.Models;
 
 using System.ComponentModel.DataAnnotations;
 

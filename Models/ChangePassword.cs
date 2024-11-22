@@ -1,3 +1,4 @@
+namespace BookStore.API.Models;
 public class ChangePassword
 {
     public string CurrentPassword { get; set; } = string.Empty; // Contraseña actual

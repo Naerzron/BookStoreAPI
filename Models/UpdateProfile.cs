@@ -1,3 +1,4 @@
+namespace BookStore.API.Models;
 public class UpdateProfile
 {
     public string Name { get; set; } = string.Empty;
