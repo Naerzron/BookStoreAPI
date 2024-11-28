@@ -31,16 +31,6 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<OrderDetail>()
-            .HasOne(d => d.Order)  // Configura la relación inversa en OrderDetail
-            .WithMany(o => o.Details)
-            .HasForeignKey(d => d.OrderId);  // Asegura que la clave foránea esté definida correctamente
-
-        modelBuilder.Entity<Order>()
-            .HasMany(o => o.Details)
-            .WithOne(d => d.Order)
-            .HasForeignKey(d => d.OrderId);
-
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Genre>().HasData(

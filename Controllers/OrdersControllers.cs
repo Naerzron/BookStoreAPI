@@ -1,4 +1,4 @@
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using BookStore.API.Data;
 using BookStore.API.Identity;
@@ -31,23 +31,21 @@ public class OrdersController : ControllerBase
     [HttpGet("user")]
     public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByUser()
     {
-       // Obtener el ID del usuario actual desde el token JWT
         var userName = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (userName == null)
             return Unauthorized(new { Message = "Usuario no autenticado." });
 
-        // Buscar al usuario en la base de datos
         var user = await _userManager.FindByNameAsync(userName);
-
         if (user == null)
             return NotFound(new { Message = "Usuario no encontrado." });
-            
-        var orders = _context.Orders.Where(o => o.User.Id == user.Id).Include(o => o.Details).ToList();
-        var orderDetails = _context.OrderDetails.ToList();
-        orders.ForEach(o => o.Details = orderDetails.Where(d => d.OrderId == o.Id).ToList());
 
-        return orders;
+        var orders = await _context.Orders
+            .Where(o => o.User.Id == user.Id)
+            .Include(o => o.Details)
+            .ThenInclude(d => d.Book)
+            .ToListAsync();
+
+        return Ok(orders);
     }
 
     [HttpGet("{id}")]
