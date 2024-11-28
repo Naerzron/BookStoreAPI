@@ -27,8 +27,20 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
 
     public DbSet<Order> Orders { get; set; }
 
+    public DbSet<OrderDetail> OrderDetails { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<OrderDetail>()
+            .HasOne(d => d.Order)  // Configura la relación inversa en OrderDetail
+            .WithMany(o => o.Details)
+            .HasForeignKey(d => d.OrderId);  // Asegura que la clave foránea esté definida correctamente
+
+        modelBuilder.Entity<Order>()
+            .HasMany(o => o.Details)
+            .WithOne(d => d.Order)
+            .HasForeignKey(d => d.OrderId);
+
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Genre>().HasData(
@@ -62,36 +74,6 @@ public class ApplicationDbContext : IdentityDbContext<MyUser>
         };
 
         modelBuilder.Entity<Author>().HasData(author);
-
-//         modelBuilder.Entity<Book>().HasData(
-//             new Book
-//             {
-//                 Id = 1,
-//                 Title = "El camino de los reyes",
-//                 PublishedDate = new DateOnly(2010, 08, 31),
-//                 Isbn = "0765326353",
-//                 Stock = 10,
-//                 Price = 33.33m,
-//                 Synopsis = @"El camino de los reyes es el primer volumen de «El Archivo de las Tormentas», el resultado de más de una década de construcción y escritura de universos, convertido en una obra maestra de la fantasía contemporánea en diez volúmenes. Con ella, Brandon Sanderson se postula como el autor del género que más lectores está ganando en todo el mundo.
-
-// Anhelo los días previos a la Última Desolación.
-
-// Los días en que los Heraldos nos abandonaron y los Caballeros Radiantes se giraron en nuestra contra. Un tiempo en que aún había magia en el mundo y honor en el corazón de los hombres.
-
-// El mundo fue nuestro, pero lo perdimos. Probablemente no hay nada más estimulante para las almas de los hombres que la victoria.
-
-// ¿O tal vez fue la victoria una ilusión durante todo ese tiempo? ¿Comprendieron nuestros enemigos que cuanto más duramente luchaban, más resistíamos nosotros? Quizá vieron que el fuego y el martillo tan solo producían mejores espadas. Pero ignoraron el acero durante el tiempo suficiente para oxidarse.
-
-// Hay cuatro personas a las que observamos. La primera es el médico, quien dejó de curar para convertirse en soldado durante la guerra más brutal de nuestro tiempo. La segunda es el asesino, un homicida que llora siempre que mata. La tercera es la mentirosa, una joven que viste un manto de erudita sobre un corazón de ladrona. Por último está el alto príncipe, un guerrero que mira al pasado mientras languidece su sed de guerra.
-
-// El mundo puede cambiar. La potenciación y el uso de las esquirlas pueden aparecer de nuevo, la magia de los días pasados puede volver a ser nuestra. Esas cuatro personas son la clave.
-
-// Una de ellas nos redimirá. Y una de ellas nos destruirá.",
-//                 Image = "",
-//                 Author = author,
-//                 Genre = genres.First(),
-            // }
-        // );
     }
 
 }

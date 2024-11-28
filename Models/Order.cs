@@ -5,6 +5,6 @@ namespace BookStore.API.Models;
     public class Order
     {
         public int Id { get; set; }
-        public required IEnumerable<OrderDetail> Details { get; set; }
+        public ICollection<OrderDetail> Details { get; set; }
         public required MyUser User { get; set; }
     }

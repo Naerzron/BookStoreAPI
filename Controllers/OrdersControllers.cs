@@ -1,3 +1,5 @@
+using System.Data.Entity;
+using System.Security.Claims;
 using BookStore.API.Data;
 using BookStore.API.Identity;
 using BookStore.API.Models;
@@ -21,27 +23,44 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet()]
-    public ActionResult<IEnumerable<Order>> GetOrders(){
+    public ActionResult<IEnumerable<Order>> GetOrders()
+    {
         return Ok(_context.Orders.ToList());
     }
 
     [HttpGet("user")]
-    public IEnumerable<Order> GetOrdersByUser()
+    public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByUser()
     {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return _context.Orders.Where(o => o.User.Id == userId);
+       // Obtener el ID del usuario actual desde el token JWT
+        var userName = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (userName == null)
+            return Unauthorized(new { Message = "Usuario no autenticado." });
+
+        // Buscar al usuario en la base de datos
+        var user = await _userManager.FindByNameAsync(userName);
+
+        if (user == null)
+            return NotFound(new { Message = "Usuario no encontrado." });
+            
+        var orders = _context.Orders.Where(o => o.User.Id == user.Id).Include(o => o.Details).ToList();
+        var orderDetails = _context.OrderDetails.ToList();
+        orders.ForEach(o => o.Details = orderDetails.Where(d => d.OrderId == o.Id).ToList());
+
+        return orders;
     }
-    
+
     [HttpGet("{id}")]
-    public ActionResult<Order> GetOrder(int id){
+    public ActionResult<Order> GetOrder(int id)
+    {
         try
         {
             var order = _context.Orders.Find(id);
-            if(order is null) return NotFound("Pedido no encontrado"); // NotFound (404)
+            if (order is null) return NotFound("Pedido no encontrado"); // NotFound (404)
 
             return Ok(order); // Ok (200)
-        } 
-        catch 
+        }
+        catch
         {
             return Problem(); // InternalServerError (500)
         }
@@ -50,36 +69,64 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder(CreateOrderRequest createOrderRequest)
     {
-        try 
-        {   
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        try
+        {
+            // Obtener el ID del usuario actual desde el token JWT
+            var userName = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (userId == null)
-            {
-                return BadRequest();
-            }
+            if (userName == null)
+                return Unauthorized(new { Message = "Usuario no autenticado." });
 
-            var user = await _userManager.FindByIdAsync(userId);
+            // Buscar al usuario en la base de datos
+            var user = await _userManager.FindByNameAsync(userName);
 
             if (user == null)
+                return NotFound(new { Message = "Usuario no encontrado." });
+
+            if (createOrderRequest.Items == null || !createOrderRequest.Items.Any())
             {
-                return BadRequest();
+                Console.WriteLine("Order does not contain items.");
+                return BadRequest("The order must contain at least one item.");
             }
 
-            Order createdOrder = new Order
+            var order = new Order
             {
-                Details = createOrderRequest.Details,
-                User = user
+                User = user,
+                Details = new List<OrderDetail>()
             };
-            
-             _context.Orders.Add(createdOrder);
-            _context.SaveChanges();
 
-            return Created();
+            foreach (var item in createOrderRequest.Items)
+            {
+                Console.WriteLine($"Processing item: BookId={item.BookId}, Quantity={item.Quantity}");
+                var book = await _context.Books.FindAsync(item.BookId);
+                if (book == null)
+                {
+                    Console.WriteLine($"Book with ID {item.BookId} not found.");
+                    return BadRequest($"Book with ID {item.BookId} does not exist.");
+                }
+
+                var orderDetail = new OrderDetail
+                {
+                    Book = book,
+                    Quantity = item.Quantity
+                };
+
+                order.Details.Add(orderDetail);
+            }
+
+            Console.WriteLine($"Order created with {order.Details.Count} items.");
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            Console.WriteLine($"Order saved with ID: {order.Id}");
+            return CreatedAtAction(nameof(CreateOrder), new { id = order.Id }, order);
         }
-        catch
+        catch (Exception ex)
         {
-            return Problem();
+            Console.Error.WriteLine($"Exception: {ex.Message}");
+            return StatusCode(500, "An error occurred while creating the order.");
         }
     }
+
+
 }
