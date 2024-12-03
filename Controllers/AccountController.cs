@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using BookStore.API.Identity;
 using BookStore.API.Models;
+using BookStore.API.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -113,6 +114,76 @@ public class AccountController : ControllerBase
             ModelState.AddModelError("error", error.Description);
 
         return BadRequest(ModelState);
+    }
+
+    [HttpGet("all")]
+    [Authorize(Roles = "Administrador")]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        try
+        {
+            // Filtrar usuarios por rol
+            var userRole = "Usuario";
+            var usersInRole = await _userManager.GetUsersInRoleAsync(userRole);
+
+            // Mapear los usuarios al DTO
+            var users = usersInRole.Select(user => new UserDto
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                Name = user.Name,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+                Address = user.Address,
+                BirthDate = user.BirthDate,
+                Country = user.Country,
+                Dni = user.Dni
+            }).ToList();
+
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al obtener los usuarios.", details = ex.Message });
+        }
+    }
+
+    [HttpGet("detail/{id}")]
+    [Authorize(Roles = "Administrador")]
+    public async Task<IActionResult> GetUserById(string id)
+    {
+        try
+        {
+            // Buscar el usuario por su ID
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+            {
+                return NotFound(new { message = "Usuario no encontrado" });
+            }
+
+            // Mapear el usuario a un DTO para evitar devolver información sensible
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                Name = user.Name,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+                Address = user.Address,
+                BirthDate = user.BirthDate,
+                Country = user.Country,
+                Dni = user.Dni
+            };
+
+            return Ok(userDto);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Error al obtener el usuario.", details = ex.Message });
+        }
     }
 
 }

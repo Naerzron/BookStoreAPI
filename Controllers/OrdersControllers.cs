@@ -54,13 +54,13 @@ public class OrdersController : ControllerBase
         try
         {
             var order = _context.Orders.Find(id);
-            if (order is null) return NotFound("Pedido no encontrado"); // NotFound (404)
+            if (order is null) return NotFound("Pedido no encontrado");
 
-            return Ok(order); // Ok (200)
+            return Ok(order);
         }
         catch
         {
-            return Problem(); // InternalServerError (500)
+            return Problem();
         }
     }
 
@@ -87,21 +87,34 @@ public class OrdersController : ControllerBase
                 return BadRequest("The order must contain at least one item.");
             }
 
+            // Calcular el total del pedido
+            decimal totalAmount = 0;
+
             var order = new Order
             {
                 User = user,
-                Details = new List<OrderDetail>()
+                Details = new List<OrderDetail>(),
+                CreatedDate = DateTime.UtcNow, // Fecha actual
+                UpdatedDate = DateTime.UtcNow, // Inicializar igual que CreatedDate
+                Status = "Pending", // Estado inicial del pedido
             };
 
             foreach (var item in createOrderRequest.Items)
             {
                 Console.WriteLine($"Processing item: BookId={item.BookId}, Quantity={item.Quantity}");
+
                 var book = await _context.Books.FindAsync(item.BookId);
+
                 if (book == null)
                 {
                     Console.WriteLine($"Book with ID {item.BookId} not found.");
                     return BadRequest($"Book with ID {item.BookId} does not exist.");
                 }
+
+                // Calcular el total del detalle
+                decimal itemTotal = book.Price * item.Quantity;
+
+                totalAmount += itemTotal;
 
                 var orderDetail = new OrderDetail
                 {
@@ -112,11 +125,16 @@ public class OrdersController : ControllerBase
                 order.Details.Add(orderDetail);
             }
 
-            Console.WriteLine($"Order created with {order.Details.Count} items.");
+            // Asignar el total calculado
+            order.TotalAmount = totalAmount;
+
+            Console.WriteLine($"Order created with {order.Details.Count} items and total amount {totalAmount}.");
+
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
             Console.WriteLine($"Order saved with ID: {order.Id}");
+
             return CreatedAtAction(nameof(CreateOrder), new { id = order.Id }, order);
         }
         catch (Exception ex)
@@ -125,6 +143,4 @@ public class OrdersController : ControllerBase
             return StatusCode(500, "An error occurred while creating the order.");
         }
     }
-
-
 }
