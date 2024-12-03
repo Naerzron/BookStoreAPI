@@ -73,6 +73,25 @@ public class BooksController : ControllerBase
         }
     }
 
+    [HttpGet("book/{id}")]
+    public ActionResult<Book> GetBookWithAuthorAndGenre(int id)
+    {
+        try
+        {
+            var book = _context.Books
+                .Include(b => b.Author)
+                .Include(b => b.Genre)
+                .FirstOrDefault(b => b.Id == id);
+            if(book is null) return NotFound("Libro no encontrado"); // NotFound (404)
+
+            return Ok(book); // Ok (200)
+        } 
+        catch 
+        {
+            return Problem(); // InternalServerError (500)
+        }
+    }
+
     [HttpPost]
     public IActionResult CreateBook(CreateBookRequest createBookRequest)
     {
@@ -155,7 +174,7 @@ public class BooksController : ControllerBase
         bookToUpdate.PublishedDate = book.PublishedDate;
         bookToUpdate.Genre = book.Genre;
         bookToUpdate.Stock = book.Stock;
-        
+        bookToUpdate.Image = book.Image;
 
         _context.Books.Update(bookToUpdate);
         _context.SaveChanges();
