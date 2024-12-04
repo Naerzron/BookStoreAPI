@@ -5,7 +5,7 @@ using BookStore.API.Identity;
 using BookStore.API.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.AspNetCore.Authorization;
 
 namespace BookStore.API.Controllers;
 
@@ -36,6 +36,24 @@ public class OrdersController : ControllerBase
             return Unauthorized(new { Message = "Usuario no autenticado." });
 
         var user = await _userManager.FindByNameAsync(userName);
+        if (user == null)
+            return NotFound(new { Message = "Usuario no encontrado." });
+
+        var orders = await _context.Orders
+            .Where(o => o.User.Id == user.Id)
+            .Include(o => o.Details)
+            .ThenInclude(d => d.Book)
+            .ToListAsync();
+
+        return Ok(orders);
+    }
+
+
+    [HttpGet("user/{userId}")]
+    [Authorize(Roles = "Administrador")]
+    public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByUserId(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
             return NotFound(new { Message = "Usuario no encontrado." });
 
@@ -89,7 +107,7 @@ public class OrdersController : ControllerBase
 
             // Calcular el total del pedido
             decimal totalAmount = 0;
-
+            Console.WriteLine(DateTime.UtcNow.ToString("") + "");
             var order = new Order
             {
                 User = user,
@@ -141,6 +159,24 @@ public class OrdersController : ControllerBase
         {
             Console.Error.WriteLine($"Exception: {ex.Message}");
             return StatusCode(500, "An error occurred while creating the order.");
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteOrder(int id) 
+    {
+        try
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if (order is null) return NotFound("Pedido no encontrado");
+
+            _context.Orders.Remove(order);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+        catch
+        {
+            return Problem();
         }
     }
 }
