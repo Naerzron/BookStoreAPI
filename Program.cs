@@ -35,10 +35,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AutorizeReactApp",
         policyBuilder =>
         {
-            policyBuilder.WithOrigins("http://localhost:3000")
+            policyBuilder.AllowAnyOrigin()
                          .AllowAnyHeader()
-                         .AllowAnyMethod()
-                         .AllowCredentials();
+                         .AllowAnyMethod();
         });
 });
 
