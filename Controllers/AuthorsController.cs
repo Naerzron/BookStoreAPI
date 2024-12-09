@@ -27,13 +27,13 @@ public class AuthorsController : ControllerBase
         try
         {
             var author = _context.Authors.Find(id);
-            if(author is null) return NotFound("Autor no encontrado"); // NotFound (404)
+            if(author is null) return NotFound("Autor no encontrado"); 
 
-            return Ok(author); // Ok (200)
+            return Ok(author); 
         } 
         catch 
         {
-            return Problem(); // InternalServerError (500)
+            return Problem(); 
         }
     }
 

@@ -8,14 +8,12 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configura Identity
 builder.Services
     .AddIdentity<MyUser, IdentityRole>(options =>
     {
@@ -74,7 +72,6 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -83,13 +80,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Agrega autenticación y autorización en el pipeline
 app.UseCors("AutorizeReactApp");
-app.UseAuthentication(); // <--- Asegúrate de que UseAuthentication esté antes de UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Llamada para crear roles al iniciar
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -98,7 +93,6 @@ using (var scope = app.Services.CreateScope())
 
 app.Run();
 
-// Método para inicializar roles y usuario administrador
 async Task SeedAdminUserAndRoles(IServiceProvider serviceProvider)
 {
     var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -113,9 +107,8 @@ async Task SeedAdminUserAndRoles(IServiceProvider serviceProvider)
         }
     }
 
-    // Crear usuario administrador predeterminado si no existe
     var adminEmail = builder.Configuration["AdminEmail"] ?? "ajlopezcobo@outlook.es";
-    var adminPassword = builder.Configuration["AdminPassword"] ?? "Abbyl40l!"; // Ajusta la contraseña según sea necesario
+    var adminPassword = builder.Configuration["AdminPassword"] ?? "Abbyl40l!";
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
     if (adminUser == null)
     {

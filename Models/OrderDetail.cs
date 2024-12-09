@@ -9,5 +9,5 @@ public class OrderDetail
     public int Quantity { get; set; }
      
     [JsonIgnore] 
-    public virtual Order Order { get; set; } // Relación inversa con Order
+    public virtual Order Order { get; set; } 
 }

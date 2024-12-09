@@ -25,13 +25,13 @@ public class GenresController : ControllerBase
         try
         {
             var genre = _context.Genres.Find(id);
-            if(genre is null) return NotFound("Género no encontrado"); // NotFound (404)
+            if(genre is null) return NotFound("Género no encontrado"); 
 
-            return Ok(genre); // Ok (200)
+            return Ok(genre); 
         } 
         catch 
         {
-            return Problem(); // InternalServerError (500)
+            return Problem(); 
         }
     }
 

@@ -12,7 +12,6 @@ public class BooksController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
 
-    // Inyectar el DbContext a través del constructor
     public BooksController(ApplicationDbContext context)
     {
         _context = context;
@@ -37,7 +36,7 @@ public class BooksController : ControllerBase
             }
         );
 
-        return Ok(booksResponse); // HTTP 200 OK
+        return Ok(booksResponse); 
     }
 
     [HttpGet("{id}")]
@@ -49,7 +48,7 @@ public class BooksController : ControllerBase
                 .Include(b => b.Author)
                 .Include(b => b.Genre)
                 .FirstOrDefault(b => b.Id == id);
-            if(book is null) return NotFound("Libro no encontrado"); // NotFound (404)
+            if(book is null) return NotFound("Libro no encontrado"); 
 
             var bookResponse = new GetBookResponse
             {
@@ -65,11 +64,11 @@ public class BooksController : ControllerBase
                 Price = book.Price
             };
 
-            return Ok(bookResponse); // Ok (200)
+            return Ok(bookResponse); 
         } 
         catch 
         {
-            return Problem(); // InternalServerError (500)
+            return Problem(); 
         }
     }
 
@@ -82,13 +81,13 @@ public class BooksController : ControllerBase
                 .Include(b => b.Author)
                 .Include(b => b.Genre)
                 .FirstOrDefault(b => b.Id == id);
-            if(book is null) return NotFound("Libro no encontrado"); // NotFound (404)
+            if(book is null) return NotFound("Libro no encontrado"); 
 
-            return Ok(book); // Ok (200)
+            return Ok(book); 
         } 
         catch 
         {
-            return Problem(); // InternalServerError (500)
+            return Problem(); 
         }
     }
 

@@ -1,6 +1,6 @@
 namespace BookStore.API.Models;
 public class ChangePassword
 {
-    public string CurrentPassword { get; set; } = string.Empty; // Contraseña actual
-    public string NewPassword { get; set; } = string.Empty;     // Nueva contraseña
+    public string CurrentPassword { get; set; } = string.Empty; 
+    public string NewPassword { get; set; } = string.Empty;     
 }

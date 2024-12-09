@@ -87,13 +87,13 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            // Obtener el ID del usuario actual desde el token JWT
+            // ID del usuario actual desde el token JWT
             var userName = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (userName == null)
                 return Unauthorized(new { Message = "Usuario no autenticado." });
 
-            // Buscar al usuario en la base de datos
+            
             var user = await _userManager.FindByNameAsync(userName);
 
             if (user == null)
@@ -105,16 +105,16 @@ public class OrdersController : ControllerBase
                 return BadRequest("The order must contain at least one item.");
             }
 
-            // Calcular el total del pedido
+           
             decimal totalAmount = 0;
             Console.WriteLine(DateTime.UtcNow.ToString("") + "");
             var order = new Order
             {
                 User = user,
                 Details = new List<OrderDetail>(),
-                CreatedDate = DateTime.UtcNow, // Fecha actual
-                UpdatedDate = DateTime.UtcNow, // Inicializar igual que CreatedDate
-                Status = "Pending", // Estado inicial del pedido
+                CreatedDate = DateTime.UtcNow, 
+                UpdatedDate = DateTime.UtcNow, 
+                Status = "Pending", 
             };
 
             foreach (var item in createOrderRequest.Items)
@@ -129,7 +129,6 @@ public class OrdersController : ControllerBase
                     return BadRequest($"Book with ID {item.BookId} does not exist.");
                 }
 
-                // Calcular el total del detalle
                 decimal itemTotal = book.Price * item.Quantity;
 
                 totalAmount += itemTotal;
@@ -143,7 +142,6 @@ public class OrdersController : ControllerBase
                 order.Details.Add(orderDetail);
             }
 
-            // Asignar el total calculado
             order.TotalAmount = totalAmount;
 
             Console.WriteLine($"Order created with {order.Details.Count} items and total amount {totalAmount}.");

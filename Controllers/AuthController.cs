@@ -89,32 +89,26 @@ public class AuthController : ControllerBase
 
     private string GenerateJwtToken(string userId, string username, string role)
     {
-        // Definir las reclamaciones (Claims)
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("userId", userId),
             new Claim("role", role)
-            // Aquí puedes agregar otros claims según tus necesidades (por ejemplo, roles)
         };
 
-        // Leer la clave secreta del archivo de configuración
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"] ?? ""));
 
-        // Definir las credenciales de firma (Firma digital)
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        // Crear el token
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"], // El emisor
-            audience: _configuration["Jwt:Audience"], // La audiencia
+            issuer: _configuration["Jwt:Issuer"], 
+            audience: _configuration["Jwt:Audience"], 
             claims: claims,
-            expires: DateTime.Now.AddMinutes(30), // El token expirará en 30 minutos
+            expires: DateTime.Now.AddMinutes(30),
             signingCredentials: credentials
         );
 
-        // Generar el token como un string
         var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
         return jwtToken;
