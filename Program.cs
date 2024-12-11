@@ -32,10 +32,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AutorizeReactApp",
         policyBuilder =>
-        {
-            policyBuilder.AllowAnyOrigin()
+        {   
+            //WithOrigins("http://localhost:3000")
+            //WithOrigins("https://nahersvault-ruddy.vercel.app") // Especifica el dominio exacto
+            policyBuilder.WithOrigins("https://nahersvault-ruddy.vercel.app")
                          .AllowAnyHeader()
-                         .AllowAnyMethod();
+                         .AllowAnyMethod()
+                         .AllowCredentials();
         });
 });
 

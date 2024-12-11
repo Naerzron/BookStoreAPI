@@ -85,6 +85,7 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder(CreateOrderRequest createOrderRequest)
     {
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             // ID del usuario actual desde el token JWT
@@ -105,7 +106,6 @@ public class OrdersController : ControllerBase
                 return BadRequest("The order must contain at least one item.");
             }
 
-           
             decimal totalAmount = 0;
             Console.WriteLine(DateTime.UtcNow.ToString("") + "");
             var order = new Order
@@ -129,6 +129,16 @@ public class OrdersController : ControllerBase
                     return BadRequest($"Book with ID {item.BookId} does not exist.");
                 }
 
+                // Verificar si hay suficiente stock
+                if (book.Stock < item.Quantity)
+                {
+                    Console.WriteLine($"Not enough stock for Book ID {item.BookId}. Available: {book.Stock}, Requested: {item.Quantity}");
+                    return BadRequest(new { message = $"No hay suficiente stock para {book.Title}. Disponibles: {book.Stock}, Solicitados: {item.Quantity}" });
+                }
+
+                // Descontar la cantidad del stock
+                book.Stock -= item.Quantity;
+
                 decimal itemTotal = book.Price * item.Quantity;
 
                 totalAmount += itemTotal;
@@ -147,7 +157,9 @@ public class OrdersController : ControllerBase
             Console.WriteLine($"Order created with {order.Details.Count} items and total amount {totalAmount}.");
 
             _context.Orders.Add(order);
+            
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             Console.WriteLine($"Order saved with ID: {order.Id}");
 
@@ -156,6 +168,7 @@ public class OrdersController : ControllerBase
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Exception: {ex.Message}");
+            await transaction.RollbackAsync(); 
             return StatusCode(500, "An error occurred while creating the order.");
         }
     }
