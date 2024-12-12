@@ -110,8 +110,8 @@ async Task SeedAdminUserAndRoles(IServiceProvider serviceProvider)
         }
     }
 
-    var adminEmail = builder.Configuration["AdminEmail"] ?? "ajlopezcobo@outlook.es";
-    var adminPassword = builder.Configuration["AdminPassword"] ?? "Abbyl40l!";
+    var adminEmail = builder.Configuration["AdminEmail"] ?? ""; //PONER UN EMAIL DE ADMINISTRADOR
+    var adminPassword = builder.Configuration["AdminPassword"] ?? ""; //PONER UNA CONTRASEÑA DE ADMINISTRADOR
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
     if (adminUser == null)
     {
