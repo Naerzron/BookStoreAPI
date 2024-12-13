@@ -33,12 +33,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AutorizeReactApp",
         policyBuilder =>
         {   
-            //WithOrigins("http://localhost:3000")
-            //WithOrigins("https://nahersvault-ruddy.vercel.app") // Especifica el dominio exacto
-            policyBuilder.WithOrigins("https://nahersvault-ruddy.vercel.app")
+            policyBuilder.AllowAnyOrigin()
                          .AllowAnyHeader()
-                         .AllowAnyMethod()
-                         .AllowCredentials();
+                         .AllowAnyMethod();
         });
 });
 
@@ -110,14 +107,14 @@ async Task SeedAdminUserAndRoles(IServiceProvider serviceProvider)
         }
     }
 
-    var adminEmail = builder.Configuration["AdminEmail"] ?? ""; //PONER UN EMAIL DE ADMINISTRADOR
-    var adminPassword = builder.Configuration["AdminPassword"] ?? ""; //PONER UNA CONTRASEÑA DE ADMINISTRADOR
+    var adminEmail = builder.Configuration["Admin:Email"] ?? "";
+    var adminPassword = builder.Configuration["Admin:Password"] ?? "";
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
     if (adminUser == null)
     {
         var newAdminUser = new MyUser
         {
-            UserName = "AdminUser",
+            UserName = adminEmail,
             Email = adminEmail,
             EmailConfirmed = true,
             Address = "Una dirección falsa del administrador",
