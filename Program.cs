@@ -33,9 +33,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AutorizeReactApp",
         policyBuilder =>
         {   
-            policyBuilder.AllowAnyOrigin()
+            policyBuilder.WithOrigins(builder.Configuration["Cors"] ?? throw new Exception("Cors need to be configured"))
                          .AllowAnyHeader()
-                         .AllowAnyMethod();
+                         .AllowAnyMethod()
+                         .AllowCredentials();
         });
 });
 
